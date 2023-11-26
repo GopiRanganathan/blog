@@ -107,7 +107,7 @@ def register():
         except sqlalchemy.exc.IntegrityError:
             flash("You are already signed up. Please Log in.")
             return redirect(url_for('login'))
-
+        flash("You're succesfully registered. Please log in to continue")
         return redirect(url_for('get_all_posts'))
     return render_template("register.html", form=form, logged_in=current_user.is_authenticated)
 
