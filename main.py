@@ -13,7 +13,7 @@ import sqlalchemy
 # Import your forms from the forms.py
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 import hashlib
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import os
 import smtplib
 
@@ -29,9 +29,9 @@ pip3 install -r requirements.txt
 
 This will install the packages from the requirements.txt for this project.
 '''
-load_dotenv()
+# load_dotenv()
 app = Flask(__name__)
-app.secret_key = os.getenv('FLASK_KEY')
+app.secret_key = os.environ.get('FLASK_KEY')
 ckeditor = CKEditor(app)
 Bootstrap5(app)
 
@@ -41,7 +41,7 @@ login_manager.init_app(app)
 
 
 # CONNECT TO DB
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQL_URI')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQL_URI')
 db = SQLAlchemy()
 db.init_app(app)
 
@@ -259,9 +259,9 @@ def contact():
         # print(msg_to_send)
         with smtplib.SMTP("smtp.gmail.com") as connection:
             connection.starttls()
-            connection.login(user=os.getenv("FROM_EMAIL"), password=os.getenv("PASSWORD"))
-            connection.sendmail(from_addr=os.getenv("FROM_EMAIL"), 
-                                to_addrs=os.getenv("TO_EMAIL"),
+            connection.login(user=os.environ.get("FROM_EMAIL"), password=os.environ.get("PASSWORD"))
+            connection.sendmail(from_addr=os.environ.get("FROM_EMAIL"), 
+                                to_addrs=os.environ.get("TO_EMAIL"),
                                 msg=f"Subject: Someone wants to get in touch with you!\n\nName: {name}\nEmail: {email}\nPhone: {phone}\nMessage: {message}")
             print("msg sent")
         flash('Message sent successfully!')
