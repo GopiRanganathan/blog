@@ -54,6 +54,11 @@
                 <p>{{comment.text|safe}}</p>
                 <span class="date sub-text">{{comment.comment_author.name}}</span>
               </div>
+              {% if comment.author_id ==  current_user.id or current_user.id == 1: %}
+              <div class="commentDelete">
+                <a href="{{url_for('delete_comment', post_id=comment.post_id, comment_id=comment.id)}}" class="text-danger"><i class="fa-solid fa-trash"></i></a>
+              </div>
+             {% endif %}
             </li>
             {% endfor %}
           </ul>

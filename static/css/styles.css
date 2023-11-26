@@ -10797,7 +10797,9 @@ header.masthead .post-heading .meta a {
     font-size: 2.25rem;
   }
 }
-
+.postDelete{
+  padding: 0px 10px;
+}
 
 /* Commment Styling */
 .commentBox {
@@ -10847,7 +10849,13 @@ header.masthead .post-heading .meta a {
   font-family:verdana;
   font-size:13px;
 }
-
+.commentDelete {
+ padding-left:20px;
+}
+.commentDelete a{
+  font-size:15px;
+  padding: 0px 10px;
+}
 /* Flash Message Styling */
 .flash {
   color: #ee6f57;

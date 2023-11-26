@@ -42,7 +42,7 @@
           on {{post.date}}
           {% if current_user.id == 1 %}
           <!-- TODO: Only show delete button if user id is 1 (admin user) -->
-          <a href="{{url_for('delete_post', post_id=post.id) }}">✘</a>
+          <a href="{{url_for('delete_post', post_id=post.id) }}" class="text-danger postDelete"><i class="fa-solid fa-trash"></i></a>
           {% endif %}
         </p>
       </div>

@@ -13,6 +13,9 @@ import sqlalchemy
 # Import your forms from the forms.py
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 import hashlib
+from dotenv import load_dotenv
+import os
+import smtplib
 
 '''
 Make sure the required packages are installed: 
@@ -26,9 +29,9 @@ pip3 install -r requirements.txt
 
 This will install the packages from the requirements.txt for this project.
 '''
-
+load_dotenv()
 app = Flask(__name__)
-app.secret_key = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
+app.secret_key = os.getenv('FLASK_KEY')
 ckeditor = CKEditor(app)
 Bootstrap5(app)
 
@@ -38,7 +41,7 @@ login_manager.init_app(app)
 
 
 # CONNECT TO DB
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQL_URI')
 db = SQLAlchemy()
 db.init_app(app)
 
@@ -175,6 +178,15 @@ def show_post(post_id):
             db.session.commit()
     return render_template("post.html", post=requested_post, form=form, logged_in=current_user.is_authenticated, gravatar=gravatar_url)
 
+# TODO: Allow admin and comment author to delete comment
+@app.route('/post/<int:post_id>/<int:comment_id>')
+def delete_comment(post_id,comment_id):
+    comment_to_delete = db.get_or_404(Comment,comment_id)
+    db.session.delete(comment_to_delete)
+    db.session.commit()
+    print("comment_deleted")
+    return redirect(url_for('show_post', post_id=post_id))
+
 
 # TODO: Use a decorator so only an admin user can create a new post
 
@@ -235,8 +247,27 @@ def about():
     return render_template("about.html", logged_in=current_user.is_authenticated)
 
 
-@app.route("/contact")
+@app.route("/contact", methods =['POST', 'GET'])
 def contact():
+   
+    if request.method=='POST':
+        name=request.form['name']
+        email=request.form['email']
+        phone=request.form['phone']
+        message=request.form['message']
+        # msg_to_send = f'Name: {name}\nEmail: {email}\nPhone: {phone}\nMessage: {message}'
+        # print(msg_to_send)
+        with smtplib.SMTP("smtp.gmail.com") as connection:
+            connection.starttls()
+            connection.login(user=os.getenv("FROM_EMAIL"), password=os.getenv("PASSWORD"))
+            connection.sendmail(from_addr=os.getenv("FROM_EMAIL"), 
+                                to_addrs=os.getenv("TO_EMAIL"),
+                                msg=f"Subject: Someone wants to get in touch with you!\n\nName: {name}\nEmail: {email}\nPhone: {phone}\nMessage: {message}")
+            print("msg sent")
+        flash('Message sent successfully!')
+        return redirect(url_for('contact'))
+    
+
     return render_template("contact.html", logged_in=current_user.is_authenticated)
 
 
