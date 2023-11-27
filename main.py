@@ -17,6 +17,7 @@ import hashlib
 import os
 import smtplib
 import asyncio
+from aiosmtplib import SMTP
 
 '''
 Make sure the required packages are installed: 
@@ -248,10 +249,11 @@ def about():
     return render_template("about.html", logged_in=current_user.is_authenticated)
 
 async def send_email(msg):
-    with smtplib.SMTP("smtp.gmail.com") as connection:
-            connection.starttls()
-            connection.login(user=os.environ.get("FROM_EMAIL"), password=os.environ.get("PASSWORD"))
-            connection.sendmail(from_addr=os.environ.get("FROM_EMAIL"), 
+    async with SMTP("smtp.gmail.com") as connection:
+            await connection.connect()
+            await connection.starttls()
+            await connection.login(user=os.environ.get("FROM_EMAIL"), password=os.environ.get("PASSWORD"))
+            await connection.sendmail(from_addr=os.environ.get("FROM_EMAIL"), 
                                 to_addrs=os.environ.get("TO_EMAIL"),
                                 msg=f"Subject: Someone wants to get in touch with you!\n\n{msg}")   
     await asyncio.sleep(3)
