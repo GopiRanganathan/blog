@@ -251,7 +251,7 @@ def about():
 
 def send_email(msg):
     try:
-        with SMTP("smtp.gmail.com") as connection:
+        with smtplib.SMTP("smtp.gmail.com") as connection:
                 # await connection.connect()
                 connection.starttls()
                 connection.login(user=os.environ.get("FROM_EMAIL"), password=os.environ.get("PASSWORD"))
@@ -273,7 +273,7 @@ def contact():
         message=request.form['message']
         msg_to_send = f'Name: {name}\nEmail: {email}\nPhone: {phone}\nMessage: {message}'
         # print(msg_to_send)
-        email_thread = threading.Thread(target=send_email, args=(msg_to_send))
+        email_thread = threading.Thread(target=send_email, args=(msg_to_send,))
         email_thread.start()
         flash('Message sent successfully!')
         return redirect(url_for('contact'))
