@@ -16,6 +16,7 @@ import hashlib
 # from dotenv import load_dotenv
 import os
 import smtplib
+import asyncio
 
 '''
 Make sure the required packages are installed: 
@@ -246,6 +247,15 @@ def delete_post(post_id):
 def about():
     return render_template("about.html", logged_in=current_user.is_authenticated)
 
+async def send_email(msg):
+    with smtplib.SMTP("smtp.gmail.com") as connection:
+            connection.starttls()
+            connection.login(user=os.environ.get("FROM_EMAIL"), password=os.environ.get("PASSWORD"))
+            connection.sendmail(from_addr=os.environ.get("FROM_EMAIL"), 
+                                to_addrs=os.environ.get("TO_EMAIL"),
+                                msg=f"Subject: Someone wants to get in touch with you!\n\n{msg}")   
+    await asyncio.sleep(3)
+    print("msg sent")
 
 @app.route("/contact", methods =['POST', 'GET'])
 def contact():
@@ -255,15 +265,9 @@ def contact():
         email=request.form['email']
         phone=request.form['phone']
         message=request.form['message']
-        # msg_to_send = f'Name: {name}\nEmail: {email}\nPhone: {phone}\nMessage: {message}'
+        msg_to_send = f'Name: {name}\nEmail: {email}\nPhone: {phone}\nMessage: {message}'
         # print(msg_to_send)
-        with smtplib.SMTP("smtp.gmail.com") as connection:
-            connection.starttls()
-            connection.login(user=os.environ.get("FROM_EMAIL"), password=os.environ.get("PASSWORD"))
-            connection.sendmail(from_addr=os.environ.get("FROM_EMAIL"), 
-                                to_addrs=os.environ.get("TO_EMAIL"),
-                                msg=f"Subject: Someone wants to get in touch with you!\n\nName: {name}\nEmail: {email}\nPhone: {phone}\nMessage: {message}")
-            print("msg sent")
+        asyncio.run(send_email(msg_to_send))
         flash('Message sent successfully!')
         return redirect(url_for('contact'))
     
