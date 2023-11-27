@@ -10,7 +10,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from functools import wraps
 import sqlalchemy
-# Import your forms from the forms.py
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 import hashlib
 # from dotenv import load_dotenv
@@ -19,7 +18,7 @@ import smtplib
 # import asyncio
 # from aiosmtplib import SMTP
 import threading
-
+from flask_mail import Mail, Message
 '''
 Make sure the required packages are installed: 
 Open the Terminal in PyCharm (bottom left). 
@@ -37,7 +36,14 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_KEY')
 ckeditor = CKEditor(app)
 Bootstrap5(app)
-
+mail = Mail(app)
+app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = os.environ.get('FROM_EMAIL')
+app.config['MAIL_PASSWORD'] = os.environ.get('PASSWORD')
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+mail = Mail(app) 
 # TODO: Configure Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -249,19 +255,19 @@ def delete_post(post_id):
 def about():
     return render_template("about.html", logged_in=current_user.is_authenticated)
 
-def send_email(msg):
-    try:
-        with smtplib.SMTP("smtp.gmail.com") as connection:
-                # await connection.connect()
-                connection.starttls()
-                connection.login(user=os.environ.get("FROM_EMAIL"), password=os.environ.get("PASSWORD"))
-                connection.sendmail(from_addr=os.environ.get("FROM_EMAIL"), 
-                                    to_addrs=os.environ.get("TO_EMAIL"),
-                                    msg=f"Subject: Someone wants to get in touch with you!\n\n{msg}")   
-                # await asyncio.sleep(3)
-    except Exception as e:
-        print(f"Failed to send email: {e}")
-    print("msg sent")
+# def send_email(msg):
+#     try:
+#         with smtplib.SMTP("smtp.gmail.com") as connection:
+#                 # await connection.connect()
+#                 connection.starttls()
+#                 connection.login(user=os.environ.get("FROM_EMAIL"), password=os.environ.get("PASSWORD"))
+#                 connection.sendmail(from_addr=os.environ.get("FROM_EMAIL"), 
+#                                     to_addrs=os.environ.get("TO_EMAIL"),
+#                                     msg=f"Subject: Someone wants to get in touch with you!\n\n{msg}")   
+#                 # await asyncio.sleep(3)
+#     except Exception as e:
+#         print(f"Failed to send email: {e}")
+#     print("msg sent")
 
 @app.route("/contact", methods =['POST', 'GET'])
 def contact():
@@ -271,10 +277,17 @@ def contact():
         email=request.form['email']
         phone=request.form['phone']
         message=request.form['message']
-        msg_to_send = f'Name: {name}\nEmail: {email}\nPhone: {phone}\nMessage: {message}'
+        # msg_to_send = f'Name: {name}\nEmail: {email}\nPhone: {phone}\nMessage: {message}'
         # print(msg_to_send)
-        email_thread = threading.Thread(target=send_email, args=(msg_to_send,))
-        email_thread.start()
+        # email_thread = threading.Thread(target=send_email, args=(msg_to_send,))
+        # email_thread.start()
+        msg = Message( 
+                'Someone wants to get in touch with you!', 
+                sender =os.environ.get('FROM_EMAIL'), 
+                recipients = [os.environ.get('TO_EMAIL')] 
+               ) 
+        msg.body = f'Name: {name}\nEmail: {email}\nPhone: {phone}\nMessage: {message}'
+        mail.send(msg) 
         flash('Message sent successfully!')
         return redirect(url_for('contact'))
     
