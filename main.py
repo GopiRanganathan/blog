@@ -16,8 +16,9 @@ import hashlib
 # from dotenv import load_dotenv
 import os
 import smtplib
-import asyncio
-from aiosmtplib import SMTP
+# import asyncio
+# from aiosmtplib import SMTP
+import threading
 
 '''
 Make sure the required packages are installed: 
@@ -248,16 +249,16 @@ def delete_post(post_id):
 def about():
     return render_template("about.html", logged_in=current_user.is_authenticated)
 
-async def send_email(msg):
+def send_email(msg):
     try:
-        async with SMTP("smtp.gmail.com") as connection:
-                await connection.connect()
-                await connection.starttls()
-                await connection.login(user=os.environ.get("FROM_EMAIL"), password=os.environ.get("PASSWORD"))
-                await connection.sendmail(from_addr=os.environ.get("FROM_EMAIL"), 
+        with SMTP("smtp.gmail.com") as connection:
+                # await connection.connect()
+                connection.starttls()
+                connection.login(user=os.environ.get("FROM_EMAIL"), password=os.environ.get("PASSWORD"))
+                connection.sendmail(from_addr=os.environ.get("FROM_EMAIL"), 
                                     to_addrs=os.environ.get("TO_EMAIL"),
                                     msg=f"Subject: Someone wants to get in touch with you!\n\n{msg}")   
-                await asyncio.sleep(3)
+                # await asyncio.sleep(3)
     except Exception as e:
         print(f"Failed to send email: {e}")
     print("msg sent")
@@ -272,7 +273,8 @@ def contact():
         message=request.form['message']
         msg_to_send = f'Name: {name}\nEmail: {email}\nPhone: {phone}\nMessage: {message}'
         # print(msg_to_send)
-        asyncio.create_task(send_email(msg_to_send))
+        email_thread = threading.Thread(target=send_email, args=(msg_to_send))
+        email_thread.start()
         flash('Message sent successfully!')
         return redirect(url_for('contact'))
     
